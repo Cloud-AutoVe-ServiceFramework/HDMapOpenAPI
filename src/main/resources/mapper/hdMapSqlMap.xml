@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.re.etri.datamanager.mapper.HdMapMapper">
+	<sql id="selection">
+		<where>
+			<if test="hdmap_id != null and hdmap_id != -1">
+				AND hdmap_id = #{hdmap_id}
+			</if>
+			<if test="hdmap_location != null and hdmap_location != ''">
+				AND hdmap_location LIKE CONCAT('%',#{hdmap_location},'%')
+			</if>
+			<if test="hdmap_location_id != null and hdmap_location_id != -1">
+				AND hdmap_location_id LIKE CONCAT('%',#{hdmap_location_id},'%')
+			</if>
+			<if test="hdmap_version != null and hdmap_version != ''">
+				AND hdmap_version LIKE CONCAT('%',#{hdmap_version},'%')
+			</if>
+			<if test="hdmap_layer != null and hdmap_layer != -1">
+				AND hdmap_layer = #{hdmap_layer}
+			</if>
+			<if test="hdmap_manufacturer != null and hdmap_manufacturer != ''">
+				AND hdmap_manufacturer LIKE CONCAT('%',#{hdmap_manufacturer},'%')
+			</if>
+			<if test="file_type != null and file_type != ''">
+				AND file_type LIKE CONCAT('%',#{file_type},'%')
+			</if>
+			<if test="file_name != null and file_name != ''">
+				AND file_name LIKE CONCAT('%',#{file_name},'%')
+			</if>
+		</where>
+	</sql>
+
+	<select id="selectList" parameterType="kr.re.etri.datamanager.vo.HdMapVO" resultType="kr.re.etri.datamanager.vo.HdMapVO">
+		<choose>
+			<when test="newest_version != null and newest_version == true">
+				SELECT A.* FROM (
+					SELECT 
+						hdmap_id, 
+						hdmap_location, 
+						hdmap_location_id, 
+						hdmap_version, 
+						(select c.codeval from code c where c.codegrp = 'hdmap_layer' AND  c.code = hdmap_layer) as hdmap_layer_name,
+						hdmap_manufacturer, 
+						archive_type,
+						file_type, 
+						file_name, 
+						DATE_FORMAT(creation_datetime,'%Y/%m/%d %H:%i:%s') as creation_datetime,
+						file_size, 
+						install_location
+					FROM hdmaps
+					<include refid="selection"></include>
+					ORDER BY hdmap_version DESC LIMIT 10000
+				) A GROUP BY A.hdmap_location, A.hdmap_location_id
+			</when>
+			
+			<otherwise>
+				SELECT 
+					hdmap_id, 
+					hdmap_location, 
+					hdmap_location_id, 
+					hdmap_version, 
+					(select c.codeval from code c where c.codegrp = 'hdmap_layer' AND  c.code = hdmap_layer) as hdmap_layer_name,
+					hdmap_manufacturer, 
+					archive_type,
+					file_type, 
+					file_name, 
+					DATE_FORMAT(creation_datetime,'%Y/%m/%d %H:%i:%s') as creation_datetime,
+					file_size, 
+					install_location
+				FROM hdmaps
+				<include refid="selection"></include>
+			</otherwise>	
+		</choose>
+	</select>
+	
+	
+	<select id="selectDownloadList" parameterType="kr.re.etri.datamanager.vo.HdMapVO" resultType="kr.re.etri.datamanager.vo.HdMapVO">
+		SELECT
+			hdmap_id,
+			file_name,
+			file_location,
+			install_location
+		FROM hdmaps
+		<where>
+			<if test="hdmap_id != null and hdmap_id != -1">
+				AND hdmap_id = #{hdmap_id}
+			</if>
+			<if test="hdmap_location != null and hdmap_location != ''">
+				AND hdmap_location = #{hdmap_location}
+			</if>
+			<if test="hdmap_location_id != null and hdmap_location_id != -1">
+				AND hdmap_location_id = #{hdmap_location_id}
+			</if>
+			<if test="hdmap_version != null and hdmap_version != ''">
+				AND hdmap_version <![CDATA[>=]]> #{hdmap_version}
+			</if>
+			<if test="hdmap_layer != null and hdmap_layer != -1">
+				AND hdmap_layer = #{hdmap_layer}
+			</if>
+			<if test="hdmap_manufacturer != null and hdmap_manufacturer != ''">
+				AND hdmap_manufacturer = #{hdmap_manufacturer}
+			</if>
+			<if test="file_type != null and file_type != ''">
+				AND file_type = #{file_type}
+			</if>
+			<if test="file_name != null and file_name != ''">
+				AND file_name = #{file_name}
+			</if>
+			<if test="creation_datetime != null and creation_datetime != ''">
+				AND creation_datetime <![CDATA[>=]]> #{creation_datetime}
+			</if>
+			<if test="hdmap_id_list != null and hdmap_id_list != ''">
+				AND hdmap_id IN (${hdmap_id_list})
+			</if>
+		</where>
+	</select>
+	
+	<select id="select" parameterType="kr.re.etri.datamanager.vo.HdMapVO" resultType="kr.re.etri.datamanager.vo.HdMapVO">
+		SELECT 
+			* 
+		FROM hdmaps
+		where
+			hdmap_id = #{hdmap_id}
+	</select>
+	
+	<insert id="insert" parameterType="kr.re.etri.datamanager.vo.HdMapVO">
+		INSERT INTO hdmaps
+		<trim prefix="(" prefixOverrides="" suffix=")" suffixOverrides=",">
+			hdmap_location, hdmap_location_id, hdmap_version, hdmap_layer, hdmap_manufacturer, archive_type, file_type, file_name, creation_datetime, file_size, file_location, install_location
+		</trim>
+		VALUES
+		<trim prefix="(" prefixOverrides="" suffix=")" suffixOverrides=",">
+			#{hdmap_location}, #{hdmap_location_id}, #{hdmap_version}, #{hdmap_layer}, #{hdmap_manufacturer}, #{archive_type}, #{file_type}, #{file_name}, #{creation_datetime}, #{file_size}, #{file_location}, #{install_location} 
+		</trim>
+	</insert>
+	
+	<update id="update" parameterType="kr.re.etri.datamanager.vo.HdMapVO">
+		UPDATE hdmaps
+		<trim prefix="SET" suffixOverrides=",">
+			<if test="hdmap_location != null and hdmap_location != ''">hdmap_location = #{hdmap_location},</if>
+			<if test="hdmap_location_id != null and hdmap_location_id != -1">hdmap_location_id = #{hdmap_location_id},</if>
+			<if test="hdmap_version != null and hdmap_version != ''">hdmap_version = #{hdmap_version},</if>
+			<if test="hdmap_layer != null and hdmap_layer != -1">hdmap_layer = #{hdmap_layer},</if>
+			<if test="hdmap_manufacturer != null and hdmap_manufacturer != ''">hdmap_manufacturer = #{hdmap_manufacturer},</if>
+			<if test="archive_type != null and archive_type != -1">archive_type = #{archive_type},</if>
+			<if test="file_type != null and file_type != ''">file_type = #{file_type},</if>
+			<if test="file_name != null and file_name != ''">file_name = #{file_name},</if>
+			<if test="creation_datetime != null and creation_datetime != ''">creation_datetime = #{creation_datetime},</if>
+			<if test="file_size != null and file_size != -1">file_size = #{file_size},</if>
+			<if test="file_location != null and file_location != ''">file_location = #{file_location},</if>
+			<if test="install_location != null and install_location != ''">install_location = #{install_location},</if>
+		</trim>
+		WHERE
+			hdmap_id = #{hdmap_id}
+	</update>
+	
+	<delete id="delete" parameterType="kr.re.etri.datamanager.vo.HdMapVO">
+		DELETE FROM hdmaps WHERE hdmap_id = #{hdmap_id}
+	</delete>
+</mapper>
