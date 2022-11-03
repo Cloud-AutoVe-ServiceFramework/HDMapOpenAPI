@@ -62,11 +62,10 @@
 <!-- 			<artifactId>spring-boot-starter-data-jpa</artifactId> -->
 <!-- 		</dependency> -->
 		
-<!--		<dependency>	-->
-<!--			<groupId>org.mariadb.jdbc</groupId>	-->
-<!--			<artifactId>mariadb-java-client</artifactId>	-->
-		    <!-- LPGL 2.1 -->
-<!--		</dependency>	-->
+		<dependency>
+			<groupId>org.xxxdb.jdbc</groupId>
+			<artifactId>xxxdb-java-client</artifactId>
+		</dependency>
 		
 		<dependency>
 			<groupId>org.projectlombok</groupId>
